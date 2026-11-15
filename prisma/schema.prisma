@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  ownedGroups Group[]
+  memberships Membership[]
+  giving      Assignment[] @relation("giver")
+  receiving   Assignment[] @relation("receiver")
+}
+
+model Group {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  budget      Int?
+  currency    String  @default("MXN")
+  // Fecha del intercambio como "AAAA-MM-DD" (solo fecha, sin zona horaria)
+  exchangeDate String?
+  inviteCode  String    @unique
+  drawnAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  memberships Membership[]
+  assignments Assignment[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  items WishlistItem[]
+
+  @@unique([userId, groupId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  title     String
+  url       String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  membershipId String
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+  id String @id @default(cuid())
+
+  groupId    String
+  group      Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  giverId    String
+  giver      User   @relation("giver", fields: [giverId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, giverId])
+  @@unique([groupId, receiverId])
+}

@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-festive), ui-serif, Georgia, serif;
+
+  --color-night: #06140f;
+  --color-pine: #0e3a2b;
+  --color-pine-light: #1d5f46;
+  --color-berry: #c21f30;
+  --color-berry-dark: #8f1422;
+  --color-gold: #e9b949;
+  --color-gold-dark: #b98a1e;
+  --color-cream: #fdf6e7;
+  --color-snow: #f4faf7;
+  --color-ink: #2b1a14;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-night);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-snow);
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, #1d5f46 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, #3a0f16 0%, transparent 55%),
+    linear-gradient(180deg, #0b2a20 0%, #06140f 100%);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-cream p-5 text-ink shadow-xl shadow-black/30 sm:p-6;
+  }
+
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-berry text-white shadow-md shadow-berry-dark/40 hover:bg-berry-dark;
+  }
+  .btn-gold {
+    @apply bg-gold text-ink shadow-md shadow-black/20 hover:bg-gold-dark hover:text-white;
+  }
+  .btn-outline {
+    @apply border-2 border-pine/25 text-pine hover:border-pine hover:bg-pine/5;
+  }
+  .btn-ghost {
+    @apply px-3 py-1.5 text-snow/90 hover:bg-white/10;
+  }
+  .btn-danger {
+    @apply px-3 py-1.5 text-berry hover:bg-berry/10;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-bold text-pine;
+  }
+  .input {
+    @apply block w-full rounded-xl border-2 border-pine/15 bg-white px-3.5 py-2.5 text-ink placeholder:text-ink/35
+      focus:border-pine-light focus:outline-none;
+  }
+  .field-error {
+    @apply mt-1 text-sm font-semibold text-berry;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-pine/10 px-3 py-1 text-sm font-semibold text-pine;
+  }
+}
+
+/* ---------- Guirnalda de luces ---------- */
+.lights {
+  display: flex;
+  justify-content: space-around;
+  height: 22px;
+  padding: 0 8px;
+  border-top: 2px solid #0a2219;
+  overflow: hidden;
+}
+.lights span {
+  width: 9px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: var(--bulb);
+  box-shadow: 0 0 10px 2px var(--bulb);
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.lights span:nth-child(4n + 1) { --bulb: #ff4d5e; animation-delay: 0s; }
+.lights span:nth-child(4n + 2) { --bulb: #ffd166; animation-delay: 0.6s; }
+.lights span:nth-child(4n + 3) { --bulb: #5fe0a0; animation-delay: 1.2s; }
+.lights span:nth-child(4n + 4) { --bulb: #6ec3ff; animation-delay: 1.8s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; box-shadow: none; }
+}
+
+/* ---------- Caja de regalo ---------- */
+.gift {
+  position: relative;
+  display: block;
+  width: 168px;
+  height: 168px;
+  margin: 0 auto;
+  cursor: pointer;
+  animation: gift-wiggle 2.6s ease-in-out infinite;
+}
+.gift:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 8px;
+  border-radius: 12px;
+}
+.gift-box {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 104px;
+  border-radius: 0 0 10px 10px;
+  background:
+    linear-gradient(90deg, transparent 42%, var(--color-gold) 42% 58%, transparent 58%),
+    linear-gradient(180deg, #a81a29 0%, var(--color-berry) 18%);
+  box-shadow: inset 0 -10px 18px rgb(0 0 0 / 0.18);
+}
+.gift-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 36px;
+  height: 34px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, transparent 43.5%, var(--color-gold) 43.5% 56.5%, transparent 56.5%),
+    var(--color-berry-dark);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.25);
+  transition:
+    transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1),
+    opacity 0.5s ease 0.25s;
+}
+.gift-lid::before,
+.gift-lid::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  width: 40px;
+  height: 30px;
+  border: 9px solid var(--color-gold);
+  border-radius: 50% 50% 0 50%;
+}
+.gift-lid::before {
+  right: 50%;
+  transform: rotate(8deg);
+}
+.gift-lid::after {
+  left: 50%;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-8deg);
+}
+.gift[data-opening="true"] {
+  animation: none;
+}
+.gift[data-opening="true"] .gift-lid {
+  transform: translateY(-110px) rotate(-22deg);
+  opacity: 0;
+}
+
+@keyframes gift-wiggle {
+  0%, 70%, 100% { transform: rotate(0); }
+  76% { transform: rotate(-5deg); }
+  82% { transform: rotate(5deg); }
+  88% { transform: rotate(-3deg); }
+  94% { transform: rotate(2deg); }
+}
+
+.reveal {
+  animation: reveal-pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes reveal-pop {
+  from { opacity: 0; transform: scale(0.7) translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lights span,
+  .gift,
+  .reveal {
+    animation: none;
+  }
+  .gift-lid {
+    transition: none;
+  }
 }

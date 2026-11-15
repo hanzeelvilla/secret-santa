@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎅 Secret Santa
 
-## Getting Started
+Web para organizar intercambios navideños: crea un grupo, invita por enlace, cada quien sube su lista de deseos y se hace el sorteo.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router, Server Actions) · TypeScript · Tailwind 4 · Prisma + SQLite.
+
+## Cómo correrlo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env      # y pon un SESSION_SECRET aleatorio de 32+ caracteres
+npx prisma migrate dev    # crea prisma/dev.db
+npm run dev               # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Otros comandos: `npm test` (tests del sorteo), `npm run lint`, `npm run build`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Cómo funciona
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Cuentas:** email + contraseña (bcrypt). La sesión es un JWT firmado en una cookie httpOnly (`src/lib/session.ts`).
+- **Grupos:** quien lo crea es el organizador. Tiene nombre, descripción, presupuesto y fecha opcionales.
+- **Invitaciones:** enlace `/join/<código>`. Se cierran al hacer el sorteo.
+- **Listas de deseos:** una por participante y por grupo; las ven todos los miembros del grupo.
+- **Sorteo** (`src/lib/draw.ts`): baraja a los participantes y los asigna en un solo ciclo, así nadie se regala a sí mismo y no hay subgrupos cerrados. Mínimo 3 personas.
+- **Privacidad:** cada quien solo puede consultar su propia asignación; el organizador tampoco ve las demás.
 
-## Learn More
+## Pasar a producción
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+SQLite es un archivo local, así que no sirve en hosting serverless (Vercel). Para desplegar, cambia `provider` a `postgresql` en `prisma/schema.prisma`, apunta `DATABASE_URL` a tu base y vuelve a generar las migraciones.
