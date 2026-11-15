@@ -51,7 +51,7 @@ async function Content() {
             Aún no estás en ningún intercambio
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-ink/70">
-            Crea un grupo e invita a tus amigos, o pídele a quien organiza que
+            Crea un grupo e invita a tus amigos, o pídele al organizador que
             te mande su enlace de invitación.
           </p>
           <Link href="/groups/new" className="btn btn-primary mt-4">

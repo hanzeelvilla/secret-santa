@@ -43,7 +43,7 @@ async function Content({ params }: PageProps<"/join/[code]">) {
           Esta invitación no existe
         </h1>
         <p className="mt-1 text-sm text-ink/70">
-          Revisa que el enlace esté completo o pide uno nuevo a quien organiza.
+          Revisa que el enlace esté completo o pide uno nuevo al organizador.
         </p>
         <Link
           href={user ? "/dashboard" : "/login"}

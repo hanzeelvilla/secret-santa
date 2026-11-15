@@ -144,8 +144,8 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
               </>
             ) : (
               <p className="mx-auto mt-1 max-w-md text-sm text-ink/70">
-                Cuando quien organiza haga el sorteo, aquí aparecerá tu regalo
-                para abrir. Mientras tanto, ¡llena tu lista de deseos!
+                Cuando el organizador haga el sorteo, aquí podrás descubrir a la
+                persona que te tocó. Mientras tanto, ¡llena tu lista de deseos!
               </p>
             )}
           </div>
@@ -200,7 +200,7 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
                   </span>
                   {member.userId === group.ownerId && (
                     <span className="shrink-0 rounded-full bg-gold/30 px-2.5 py-0.5 text-xs font-bold">
-                      Organiza
+                      Organizador
                     </span>
                   )}
                   <span className="shrink-0 text-sm font-normal text-ink/55">

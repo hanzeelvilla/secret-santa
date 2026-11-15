@@ -169,7 +169,7 @@ export async function runDraw(groupId: string): Promise<FormState> {
     },
   });
   if (!group || group.ownerId !== user.id) {
-    return { error: "Solo quien organiza el grupo puede hacer el sorteo" };
+    return { error: "Solo el organizador del grupo puede hacer el sorteo" };
   }
   if (group.memberships.length < MIN_PARTICIPANTS) {
     return {

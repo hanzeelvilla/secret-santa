@@ -36,7 +36,7 @@ export default function Home() {
       </h1>
       <p className="mx-auto mt-4 max-w-xl text-lg text-snow/80">
         Organiza el Secret Santa de tu familia, amigos u oficina en minutos.
-        Nadie sabe quién le regala a quién… ni siquiera quien organiza.
+        Nadie sabe quién le regala a quién… ni siquiera el organizador.
       </p>
 
       <div className="mt-7 flex flex-wrap justify-center gap-3">
