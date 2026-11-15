@@ -31,6 +31,7 @@ Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegu
 ## Reglas de grupos
 - El organizador edita el grupo (`updateGroup`), quita participantes (`removeMember`) y lo elimina (`deleteGroup`); los demás solo pueden salirse (`leaveGroup`).
 - Tras el sorteo nadie puede salirse ni ser quitado (rompería la cadena de regalos); el organizador puede rehacer el sorteo.
+- `/join/<código>` es pública: quien no tiene sesión ve la tarjeta de la invitación con botones para iniciar sesión o registrarse (vuelve ahí con `?next=`); unirse (`joinGroup`) sí exige sesión.
 - Los permisos se validan siempre en el servidor (`src/actions/groups.ts`), no solo ocultando botones. En Prisma, para vaciar un campo opcional hay que enviar `null` (con `undefined` no se toca).
 
 ## Preferencias para formularios (aplican a todo formulario nuevo o que se modifique)
