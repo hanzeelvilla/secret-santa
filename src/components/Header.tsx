@@ -19,6 +19,17 @@ async function UserNav() {
     );
   }
 
+  // Con el correo sin confirmar solo se puede salir (bloqueo total).
+  if (!user.emailVerified) {
+    return (
+      <form action={logout}>
+        <button type="submit" className="btn btn-ghost">
+          Salir
+        </button>
+      </form>
+    );
+  }
+
   return (
     <>
       <Link href="/dashboard" className="btn btn-ghost">

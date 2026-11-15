@@ -15,6 +15,10 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
+  // null = el correo aún no se ha confirmado
+  emailVerifiedAt DateTime?
+  emailTokens     EmailToken[]
+
   ownedGroups Group[]
   memberships Membership[]
   giving      Assignment[] @relation("giver")
@@ -81,4 +85,24 @@ model Assignment {
 
   @@unique([groupId, giverId])
   @@unique([groupId, receiverId])
+}
+
+enum EmailTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+// Tokens de un solo uso enviados por correo. Se guarda el hash SHA-256 del
+// token (nunca el token en sí): quien lea la base no puede usar los enlaces.
+model EmailToken {
+  id        String         @id @default(cuid())
+  type      EmailTokenType
+  tokenHash String         @unique
+  expiresAt DateTime
+  createdAt DateTime       @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
 }

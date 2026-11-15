@@ -53,23 +53,40 @@ async function readUserId(): Promise<string | null> {
   }
 }
 
-export type SessionUser = { id: string; name: string; email: string };
+export type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+};
 
 /** Usuario de la sesión actual, o null si no hay sesión válida. */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const userId = await readUserId();
   if (!userId) return null;
-  return db.user.findUnique({
+  const user = await db.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, emailVerifiedAt: true },
   });
+  if (!user) return null;
+  const { emailVerifiedAt, ...rest } = user;
+  return { ...rest, emailVerified: emailVerifiedAt !== null };
 });
 
-/** Igual que getCurrentUser, pero manda a /login si no hay sesión. */
+/**
+ * Igual que getCurrentUser, pero manda a /login si no hay sesión y a
+ * /verify-email si el correo aún no se ha confirmado (bloqueo total: una
+ * cuenta sin confirmar no accede a nada más).
+ */
 export async function requireUser(next?: string): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) {
     redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
+  }
+  if (!user.emailVerified) {
+    redirect(
+      next ? `/verify-email?next=${encodeURIComponent(next)}` : "/verify-email",
+    );
   }
   return user;
 }

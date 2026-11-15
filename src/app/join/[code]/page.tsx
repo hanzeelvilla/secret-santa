@@ -55,6 +55,11 @@ async function Content({ params }: PageProps<"/join/[code]">) {
     );
   }
 
+  // Sin el correo confirmado no se puede participar: se confirma y se vuelve aquí.
+  if (user && !user.emailVerified) {
+    redirect(`/verify-email?next=${next}`);
+  }
+
   if (user && group.memberships.some((m) => m.userId === user.id)) {
     redirect(`/groups/${group.id}`);
   }

@@ -18,13 +18,14 @@ Variables (en `.env`, que nunca se sube; plantilla en `.env.example`):
 - `DATABASE_URL` — Supabase *transaction pooler* (puerto 6543, con `?pgbouncer=true`), usada por la app.
 - `DIRECT_URL` — Supabase *session pooler* (puerto 5432), usada por Prisma para migraciones (la conexión directa de Supabase es solo IPv6 y falla en el build de Vercel).
 - `SESSION_SECRET` — secreto aleatorio de 32+ caracteres para firmar la sesión.
+- `RESEND_API_KEY`, `EMAIL_FROM` (remitente de un dominio verificado en Resend) y `APP_URL` (URL pública para los enlaces de los correos). Sin las dos primeras, en desarrollo los correos se imprimen en la consola del servidor.
 
-Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegue en Vercel: un push a `main` despliega (las mismas tres variables deben existir en Vercel).
+Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegue en Vercel: un push a `main` despliega (las mismas variables deben existir en Vercel).
 
 ## Estructura
-- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`).
+- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`, `verify-email`).
 - `src/actions` — server actions (`auth.ts` incluye `updateProfile`, `groups.ts`, `wishlist.ts`).
-- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`.
+- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`, `tokens.ts` (tokens y esperas, con test), `email.ts` (Resend), `email-templates.ts`, `verification.ts`.
 - `src/components` — componentes de UI; `buttons.tsx` exporta `SubmitButton` y `Spinner`.
 - `src/app/globals.css` — tema (colores `pine`, `berry`, `gold`, `cream`, `ink`) y clases reutilizables: `.card`, `.btn*`, `.label`, `.input`, `.select`, `.field-error`, `.chip`.
 
@@ -32,6 +33,8 @@ Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegu
 - El organizador edita el grupo (`updateGroup`), quita participantes (`removeMember`) y lo elimina (`deleteGroup`); los demás solo pueden salirse (`leaveGroup`).
 - Tras el sorteo nadie puede salirse ni ser quitado (rompería la cadena de regalos); el organizador puede rehacer el sorteo.
 - `/join/<código>` es pública: quien no tiene sesión ve la tarjeta de la invitación con botones para iniciar sesión o registrarse (vuelve ahí con `?next=`); unirse (`joinGroup`) sí exige sesión.
+- **Correo confirmado obligatorio (bloqueo total):** `requireUser` redirige a `/verify-email` si `emailVerifiedAt` es null; solo `getCurrentUser` deja pasar a cuentas sin confirmar. El registro envía el correo con un token de 24 h (solo se guarda su hash en `EmailToken`), `/verify-email?token=` pide un clic para confirmar (los escáneres de correo abren los enlaces) y el reenvío espera 60 s y se limita a 5 por hora.
+- **Correos (Resend):** `sendEmail` en `src/lib/email.ts`; plantillas HTML con estilos en línea en `src/lib/email-templates.ts`. Pendiente de construir sobre esto: cambio de contraseña (`EmailTokenType.PASSWORD_RESET`), aviso de grupo actualizado y aviso de sorteo hecho.
 - Los permisos se validan siempre en el servidor (`src/actions/groups.ts`), no solo ocultando botones. En Prisma, para vaciar un campo opcional hay que enviar `null` (con `undefined` no se toca).
 
 ## Preferencias para formularios (aplican a todo formulario nuevo o que se modifique)
