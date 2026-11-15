@@ -22,11 +22,16 @@ Variables (en `.env`, que nunca se sube; plantilla en `.env.example`):
 Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegue en Vercel: un push a `main` despliega (las mismas tres variables deben existir en Vercel).
 
 ## Estructura
-- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `join/[code]`).
+- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`).
 - `src/actions` — server actions (`auth.ts`, `groups.ts`, `wishlist.ts`).
 - `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`.
 - `src/components` — componentes de UI; `buttons.tsx` exporta `SubmitButton` y `Spinner`.
 - `src/app/globals.css` — tema (colores `pine`, `berry`, `gold`, `cream`, `ink`) y clases reutilizables: `.card`, `.btn*`, `.label`, `.input`, `.select`, `.field-error`, `.chip`.
+
+## Reglas de grupos
+- El organizador edita el grupo (`updateGroup`), quita participantes (`removeMember`) y lo elimina (`deleteGroup`); los demás solo pueden salirse (`leaveGroup`).
+- Tras el sorteo nadie puede salirse ni ser quitado (rompería la cadena de regalos); el organizador puede rehacer el sorteo.
+- Los permisos se validan siempre en el servidor (`src/actions/groups.ts`), no solo ocultando botones. En Prisma, para vaciar un campo opcional hay que enviar `null` (con `undefined` no se toca).
 
 ## Preferencias para formularios (aplican a todo formulario nuevo o que se modifique)
 1. **Validación con react-hook-form + zod**, reutilizando los schemas de `src/lib/validation.ts` (los mismos que valida el servidor):

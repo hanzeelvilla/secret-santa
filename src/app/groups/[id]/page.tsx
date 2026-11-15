@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { deleteGroup, leaveGroup } from "@/actions/groups";
+import { deleteGroup, leaveGroup, removeMember } from "@/actions/groups";
 import { Countdown } from "@/components/Countdown";
 import { DrawButton } from "@/components/DrawButton";
 import { GiftReveal } from "@/components/GiftReveal";
@@ -103,6 +103,14 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
             <Countdown date={group.exchangeDate} />
           </div>
         )}
+        {isOwner && (
+          <Link
+            href={`/groups/${group.id}/edit`}
+            className="btn btn-outline mt-4"
+          >
+            ✏️ Editar grupo
+          </Link>
+        )}
       </section>
 
       {/* Sorteo / revelación */}
@@ -173,10 +181,16 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
         <h2 className="font-display text-3xl font-bold text-pine">
           👥 Participantes
         </h2>
+        {isOwner && isDrawn && (
+          <p className="mt-1 text-sm text-ink/60">
+            Tras el sorteo no se puede quitar a nadie; si necesitas cambiar algo,
+            puedes rehacer el sorteo.
+          </p>
+        )}
         <ul className="mt-3 divide-y divide-pine/10">
           {group.memberships.map((member) => (
-            <li key={member.userId} className="py-2">
-              <details>
+            <li key={member.userId} className="flex items-start gap-2 py-2">
+              <details className="min-w-0 flex-1">
                 <summary className="flex cursor-pointer items-center gap-2 font-semibold">
                   <span className="min-w-0 flex-1 break-words">
                     {member.user.name}
@@ -229,34 +243,57 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
                   </ul>
                 )}
               </details>
+              {isOwner && !isDrawn && member.userId !== group.ownerId && (
+                <form action={removeMember.bind(null, group.id, member.userId)}>
+                  <SubmitButton
+                    className="btn btn-danger"
+                    pendingText="Quitando…"
+                    spinner
+                    confirmMessage={`¿Quitar a ${member.user.name} del grupo? Se borrará su lista de deseos.`}
+                  >
+                    Quitar
+                  </SubmitButton>
+                </form>
+              )}
             </li>
           ))}
         </ul>
       </section>
 
       {/* Acciones delicadas */}
-      <div className="flex flex-wrap justify-end gap-2">
-        {isOwner && isDrawn && <DrawButton groupId={group.id} redo />}
-        {isOwner ? (
-          <form action={deleteGroup.bind(null, group.id)}>
-            <SubmitButton
-              className="btn btn-ghost text-snow/70"
-              confirmMessage={`¿Eliminar "${group.name}"? Se borrarán las listas y el sorteo de todos. No se puede deshacer.`}
-            >
-              Eliminar grupo
-            </SubmitButton>
-          </form>
-        ) : (
-          !isDrawn && (
-            <form action={leaveGroup.bind(null, group.id)}>
+      <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          {isOwner && isDrawn && <DrawButton groupId={group.id} redo />}
+          {isOwner ? (
+            <form action={deleteGroup.bind(null, group.id)}>
               <SubmitButton
                 className="btn btn-ghost text-snow/70"
-                confirmMessage="¿Salir de este intercambio? Se borrará tu lista de deseos."
+                pendingText="Eliminando…"
+                spinner
+                confirmMessage={`¿Eliminar "${group.name}"? Se borrarán las listas y el sorteo de todos. No se puede deshacer.`}
               >
-                Salir del grupo
+                Eliminar grupo
               </SubmitButton>
             </form>
-          )
+          ) : (
+            !isDrawn && (
+              <form action={leaveGroup.bind(null, group.id)}>
+                <SubmitButton
+                  className="btn btn-outline border-snow/30 text-snow hover:border-snow hover:bg-white/10"
+                  pendingText="Saliendo…"
+                  spinner
+                  confirmMessage="¿Salir de este intercambio? Se borrará tu lista de deseos."
+                >
+                  Salir del grupo
+                </SubmitButton>
+              </form>
+            )
+          )}
+        </div>
+        {!isOwner && isDrawn && (
+          <p className="text-sm text-snow/60">
+            Ya se hizo el sorteo, por eso ya no puedes salirte del grupo.
+          </p>
         )}
       </div>
     </div>

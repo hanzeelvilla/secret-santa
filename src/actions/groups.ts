@@ -36,6 +36,75 @@ export async function createGroup(
   redirect(`/groups/${group.id}`);
 }
 
+/** Actualiza los datos del grupo. Solo el organizador. */
+export async function updateGroup(
+  groupId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser(`/groups/${groupId}/edit`);
+
+  const group = await db.group.findFirst({
+    where: { id: groupId, ownerId: user.id },
+    select: { id: true },
+  });
+  if (!group) redirect(`/groups/${groupId}`);
+
+  const parsed = groupSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    budget: formData.get("budget"),
+    currency: formData.get("currency") ?? undefined,
+    exchangeDate: formData.get("exchangeDate"),
+  });
+  if (!parsed.success) return toFormState(parsed.error);
+
+  const { name, description, budget, currency, exchangeDate } = parsed.data;
+  await db.group.update({
+    where: { id: groupId },
+    data: {
+      name,
+      currency,
+      // En Prisma `undefined` significa "no tocar": para poder borrar un
+      // campo opcional hay que enviar `null` de forma explícita.
+      description: description ?? null,
+      budget: budget ?? null,
+      exchangeDate: exchangeDate ?? null,
+    },
+  });
+
+  // `/groups/<id>` no invalida su ruta hija `/edit`: sin esto, al volver a
+  // editar podría verse la versión en caché con los datos anteriores.
+  revalidatePath(`/groups/${groupId}/edit`);
+  revalidatePath(`/groups/${groupId}`);
+  revalidatePath("/dashboard");
+  redirect(`/groups/${groupId}`);
+}
+
+/** Quita a un participante. Solo el organizador y solo antes del sorteo. */
+export async function removeMember(groupId: string, userId: string) {
+  const user = await requireUser();
+
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    select: { ownerId: true, drawnAt: true },
+  });
+  // Tras el sorteo no se puede quitar a nadie (rompería la cadena de regalos)
+  // y el organizador no puede quitarse a sí mismo.
+  if (
+    !group ||
+    group.ownerId !== user.id ||
+    group.drawnAt ||
+    userId === group.ownerId
+  ) {
+    redirect(`/groups/${groupId}`);
+  }
+
+  await db.membership.deleteMany({ where: { groupId, userId } });
+  revalidatePath(`/groups/${groupId}`);
+  revalidatePath("/dashboard");
+}
+
 export async function joinGroup(inviteCode: string) {
   const user = await requireUser(`/join/${inviteCode}`);
 
