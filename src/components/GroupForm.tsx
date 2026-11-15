@@ -1,29 +1,86 @@
 "use client";
 
-import { useActionState } from "react";
+import { useTransition } from "react";
+import { Controller, type Resolver, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { createGroup } from "@/actions/groups";
-import { CURRENCIES } from "@/lib/validation";
-import { SubmitButton } from "./buttons";
+import { CURRENCIES, groupSchema } from "@/lib/validation";
+import { Spinner } from "./buttons";
+import { DatePicker } from "./DatePicker";
+
+type GroupValues = {
+  name: string;
+  description: string;
+  budget: string;
+  currency: string;
+  exchangeDate: string;
+};
 
 export function GroupForm() {
-  const [state, action] = useActionState(createGroup, undefined);
-  const errors = state?.fieldErrors;
+  const [isPending, startTransition] = useTransition();
+  const {
+    register,
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<GroupValues>({
+    resolver: zodResolver(groupSchema) as unknown as Resolver<GroupValues>,
+    mode: "onTouched",
+    reValidateMode: "onChange",
+    defaultValues: {
+      name: "",
+      description: "",
+      budget: "",
+      currency: "MXN",
+      exchangeDate: "",
+    },
+  });
+
+  const onValid = (values: GroupValues) => {
+    clearErrors("root");
+    startTransition(async () => {
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(values)) {
+        formData.set(key, value);
+      }
+
+      // Si todo sale bien, la acción redirige y esta línea no devuelve nada.
+      const result = await createGroup(undefined, formData);
+      if (!result) return;
+
+      for (const [name, messages] of Object.entries(
+        result.fieldErrors ?? {},
+      )) {
+        if (messages?.[0]) {
+          setError(name as keyof GroupValues, { message: messages[0] });
+        }
+      }
+      if (result.error) setError("root", { message: result.error });
+    });
+  };
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={handleSubmit(onValid)} noValidate className="space-y-4">
       <div>
         <label htmlFor="name" className="label">
           Nombre del grupo
         </label>
         <input
           id="name"
-          name="name"
           className="input"
           placeholder="Familia Villa, Oficina, Los de la prepa…"
-          required
           maxLength={60}
+          aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? "name-error" : undefined}
+          {...register("name")}
         />
-        {errors?.name && <p className="field-error">{errors.name[0]}</p>}
+        {errors.name && (
+          <p id="name-error" className="field-error">
+            {errors.name.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -32,14 +89,18 @@ export function GroupForm() {
         </label>
         <textarea
           id="description"
-          name="description"
           className="input"
           rows={3}
           maxLength={300}
           placeholder="Dónde será, reglas, ideas…"
+          aria-invalid={!!errors.description}
+          aria-describedby={errors.description ? "description-error" : undefined}
+          {...register("description")}
         />
-        {errors?.description && (
-          <p className="field-error">{errors.description[0]}</p>
+        {errors.description && (
+          <p id="description-error" className="field-error">
+            {errors.description.message}
+          </p>
         )}
       </div>
 
@@ -52,26 +113,29 @@ export function GroupForm() {
           <div className="flex gap-2">
             <input
               id="budget"
-              name="budget"
               type="number"
               inputMode="numeric"
-              min={1}
-              step={1}
               className="input"
               placeholder="500"
+              aria-invalid={!!errors.budget}
+              aria-describedby={errors.budget ? "budget-error" : undefined}
+              {...register("budget")}
             />
             <select
-              name="currency"
               aria-label="Moneda"
-              className="input w-24 shrink-0"
-              defaultValue="MXN"
+              className="input select w-28 shrink-0"
+              {...register("currency")}
             >
               {CURRENCIES.map((currency) => (
                 <option key={currency}>{currency}</option>
               ))}
             </select>
           </div>
-          {errors?.budget && <p className="field-error">{errors.budget[0]}</p>}
+          {errors.budget && (
+            <p id="budget-error" className="field-error">
+              {errors.budget.message}
+            </p>
+          )}
         </div>
 
         <div>
@@ -79,27 +143,43 @@ export function GroupForm() {
             Fecha del intercambio{" "}
             <span className="font-normal text-ink/50">(opcional)</span>
           </label>
-          <input
-            id="exchangeDate"
+          <Controller
+            control={control}
             name="exchangeDate"
-            type="date"
-            className="input"
+            render={({ field }) => (
+              <DatePicker
+                id="exchangeDate"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                invalid={!!errors.exchangeDate}
+                describedBy={errors.exchangeDate ? "exchangeDate-error" : undefined}
+              />
+            )}
           />
-          {errors?.exchangeDate && (
-            <p className="field-error">{errors.exchangeDate[0]}</p>
+          {errors.exchangeDate && (
+            <p id="exchangeDate-error" className="field-error">
+              {errors.exchangeDate.message}
+            </p>
           )}
         </div>
       </div>
 
-      {state?.error && (
+      {errors.root && (
         <p className="field-error" role="alert">
-          {state.error}
+          {errors.root.message}
         </p>
       )}
 
-      <SubmitButton className="btn btn-primary w-full">
-        Crear grupo 🎄
-      </SubmitButton>
+      <button
+        type="submit"
+        className="btn btn-primary w-full"
+        disabled={isPending}
+        aria-busy={isPending}
+      >
+        {isPending && <Spinner />}
+        {isPending ? "Creando grupo…" : "Crear grupo 🎄"}
+      </button>
     </form>
   );
 }
