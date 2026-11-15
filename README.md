@@ -2,14 +2,14 @@
 
 Web para organizar intercambios navideños: crea un grupo, invita por enlace, cada quien sube su lista de deseos y se hace el sorteo.
 
-**Stack:** Next.js 16 (App Router, Server Actions) · TypeScript · Tailwind 4 · Prisma + SQLite.
+**Stack:** Next.js 16 (App Router, Server Actions) · TypeScript · Tailwind 4 · Prisma + PostgreSQL.
 
 ## Cómo correrlo
 
 ```bash
 npm install
-cp .env.example .env      # y pon un SESSION_SECRET aleatorio de 32+ caracteres
-npx prisma migrate dev    # crea prisma/dev.db
+cp .env.example .env      # pon tu DATABASE_URL de Postgres y un SESSION_SECRET aleatorio de 32+ caracteres
+npx prisma migrate dev    # crea las tablas en tu base de datos
 npm run dev               # http://localhost:3000
 ```
 
@@ -24,6 +24,8 @@ Otros comandos: `npm test` (tests del sorteo), `npm run lint`, `npm run build`.
 - **Sorteo** (`src/lib/draw.ts`): baraja a los participantes y los asigna en un solo ciclo, así nadie se regala a sí mismo y no hay subgrupos cerrados. Mínimo 3 personas.
 - **Privacidad:** cada quien solo puede consultar su propia asignación; el organizador tampoco ve las demás.
 
-## Pasar a producción
+## Desplegar en Vercel
 
-SQLite es un archivo local, así que no sirve en hosting serverless (Vercel). Para desplegar, cambia `provider` a `postgresql` en `prisma/schema.prisma`, apunta `DATABASE_URL` a tu base y vuelve a generar las migraciones.
+1. Importa el repo en Vercel y añade una base Postgres (Storage → Neon/Prisma Postgres, o cualquier Postgres externo).
+2. Define las variables de entorno `DATABASE_URL` y `SESSION_SECRET`.
+3. `npm run build` ejecuta `prisma migrate deploy` antes de compilar, así que las migraciones se aplican en cada deploy.
