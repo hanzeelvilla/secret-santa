@@ -65,7 +65,7 @@ async function Content({ searchParams }: PageProps<"/verify-email">) {
       <form action={logout} className="mt-4">
         <button
           type="submit"
-          className="text-sm font-bold text-berry underline underline-offset-2"
+          className="cursor-pointer text-sm font-bold text-berry underline underline-offset-2"
         >
           Salir o usar otra cuenta
         </button>
