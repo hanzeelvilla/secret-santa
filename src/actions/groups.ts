@@ -3,8 +3,11 @@
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/lib/db";
 import { drawAssignments, MIN_PARTICIPANTS } from "@/lib/draw";
+import { diffGroup } from "@/lib/group-changes";
+import { notifyDrawDone, notifyGroupUpdated } from "@/lib/group-emails";
 import { requireUser } from "@/lib/session";
 import { type FormState, groupSchema, toFormState } from "@/lib/validation";
 
@@ -46,7 +49,14 @@ export async function updateGroup(
 
   const group = await db.group.findFirst({
     where: { id: groupId, ownerId: user.id },
-    select: { id: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      budget: true,
+      currency: true,
+      exchangeDate: true,
+    },
   });
   if (!group) redirect(`/groups/${groupId}`);
 
@@ -60,18 +70,23 @@ export async function updateGroup(
   if (!parsed.success) return toFormState(parsed.error);
 
   const { name, description, budget, currency, exchangeDate } = parsed.data;
-  await db.group.update({
-    where: { id: groupId },
-    data: {
-      name,
-      currency,
-      // En Prisma `undefined` significa "no tocar": para poder borrar un
-      // campo opcional hay que enviar `null` de forma explícita.
-      description: description ?? null,
-      budget: budget ?? null,
-      exchangeDate: exchangeDate ?? null,
-    },
-  });
+  const updated = {
+    name,
+    currency,
+    // En Prisma `undefined` significa "no tocar": para poder borrar un
+    // campo opcional hay que enviar `null` de forma explícita.
+    description: description ?? null,
+    budget: budget ?? null,
+    exchangeDate: exchangeDate ?? null,
+  };
+  await db.group.update({ where: { id: groupId }, data: updated });
+
+  // Se avisa a los participantes solo si algo cambió de verdad; el correo sale
+  // después de responder y un fallo de envío no afecta al guardado.
+  const changes = diffGroup(group, updated);
+  if (changes.length > 0) {
+    after(() => notifyGroupUpdated(groupId, changes));
+  }
 
   // `/groups/<id>` no invalida su ruta hija `/edit`: sin esto, al volver a
   // editar podría verse la versión en caché con los datos anteriores.
@@ -177,6 +192,7 @@ export async function runDraw(groupId: string): Promise<FormState> {
     where: { id: groupId },
     select: {
       ownerId: true,
+      drawnAt: true,
       memberships: { select: { userId: true } },
     },
   });
@@ -200,5 +216,9 @@ export async function runDraw(groupId: string): Promise<FormState> {
   ]);
 
   revalidatePath(`/groups/${groupId}`);
+
+  // Aviso a todos los participantes (sin decir a quién le toca a nadie).
+  const redo = group.drawnAt !== null;
+  after(() => notifyDrawDone(groupId, { redo }));
   return undefined;
 }

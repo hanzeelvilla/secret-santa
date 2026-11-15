@@ -26,12 +26,21 @@ type Layout = {
   title: string;
   /** Párrafos como HTML (escapa tú los datos del usuario con `escapeHtml`). */
   paragraphs: string[];
+  /** Bloque opcional tras los párrafos (p. ej. una lista de cambios). */
+  details?: { html: string; text: string[] };
   button?: { label: string; url: string };
   footer?: string;
 };
 
 /** Estructura común de todos los correos: devuelve HTML y texto plano. */
-function render({ preheader, title, paragraphs, button, footer }: Layout) {
+function render({
+  preheader,
+  title,
+  paragraphs,
+  details,
+  button,
+  footer,
+}: Layout) {
   const body = paragraphs
     .map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.5;">${p}</p>`)
     .join("");
@@ -62,6 +71,7 @@ function render({ preheader, title, paragraphs, button, footer }: Layout) {
               <td style="background:${COLORS.cream};border-radius:16px;padding:28px 24px;font-family:${SANS};color:${COLORS.ink};">
                 <h1 style="margin:0 0 12px;font-family:${SERIF};font-size:28px;line-height:1.2;color:${COLORS.berry};">${escapeHtml(title)}</h1>
                 ${body}
+                ${details?.html ?? ""}
                 ${buttonHtml}
                 ${footerHtml}
               </td>
@@ -78,6 +88,7 @@ function render({ preheader, title, paragraphs, button, footer }: Layout) {
     title,
     "",
     ...paragraphs.map(stripTags),
+    ...(details ? ["", ...details.text] : []),
     ...(button ? ["", `${button.label}: ${button.url}`] : []),
     ...(footer ? ["", stripTags(footer)] : []),
   ].join("\n");
@@ -133,4 +144,96 @@ export function passwordChangedEmail({
       "Si no reconoces este cambio, restablece tu contraseña de inmediato desde el botón.",
   });
   return { subject: "Tu contraseña de Secret Santa cambió 🔒", html, text };
+}
+
+type GroupChange = { label: string; from: string; to: string };
+
+export function groupUpdatedEmail({
+  name,
+  ownerName,
+  groupName,
+  changes,
+  url,
+}: {
+  name: string;
+  ownerName: string;
+  groupName: string;
+  changes: GroupChange[];
+  url: string;
+}) {
+  const rows = changes
+    .map(
+      (change) =>
+        `<li style="margin:0 0 10px;"><strong>${escapeHtml(change.label)}</strong><br>` +
+        `<span style="color:#6b5a52;text-decoration:line-through;">${escapeHtml(change.from)}</span><br>` +
+        `<span style="color:${COLORS.berry};font-weight:bold;">${escapeHtml(change.to)}</span></li>`,
+    )
+    .join("");
+
+  const { html, text } = render({
+    preheader: `${ownerName} actualizó «${groupName}»`,
+    title: "El intercambio se actualizó ✏️",
+    paragraphs: [
+      `¡Hola, ${escapeHtml(name)}! ${escapeHtml(ownerName)} hizo cambios en «${escapeHtml(groupName)}»:`,
+    ],
+    details: {
+      html: `<ul style="margin:0 0 14px;padding-left:20px;font-size:15px;line-height:1.5;">${rows}</ul>`,
+      text: changes.map((c) => `- ${c.label}: ${c.from} → ${c.to}`),
+    },
+    button: { label: "Ver el grupo", url },
+    footer: "Recibes este correo porque participas en este intercambio.",
+  });
+  return { subject: `«${groupName}» se actualizó ✏️`, html, text };
+}
+
+export function drawDoneEmail({
+  name,
+  ownerName,
+  groupName,
+  redo,
+  exchangeDate,
+  budget,
+  url,
+}: {
+  name: string;
+  ownerName: string;
+  groupName: string;
+  redo: boolean;
+  /** Ya formateados para mostrar (p. ej. "24 de diciembre de 2026"). */
+  exchangeDate?: string | null;
+  budget?: string | null;
+  url: string;
+}) {
+  const facts = [
+    exchangeDate ? `📅 Fecha del intercambio: ${exchangeDate}` : null,
+    budget ? `💰 Presupuesto: ${budget}` : null,
+  ].filter((fact): fact is string => fact !== null);
+
+  const { html, text } = render({
+    preheader: redo
+      ? `${ownerName} rehizo el sorteo de «${groupName}»`
+      : `Ya puedes descubrir a quién le regalas en «${groupName}»`,
+    title: redo ? "Se rehízo el sorteo 🎲" : "¡Ya se hizo el sorteo! 🎁",
+    paragraphs: [
+      redo
+        ? `¡Hola, ${escapeHtml(name)}! ${escapeHtml(ownerName)} rehízo el sorteo de «${escapeHtml(groupName)}». Tu asignación pudo cambiar: vuelve a abrir tu regalo para descubrir a quién le regalas.`
+        : `¡Hola, ${escapeHtml(name)}! ${escapeHtml(ownerName)} acaba de hacer el sorteo de «${escapeHtml(groupName)}». Entra para abrir tu regalo y descubrir a quién le regalas.`,
+      "Por seguridad, este correo no dice a quién le tocó a nadie: solo tú lo verás al abrir tu regalo en la app. 🤫",
+    ],
+    details: facts.length
+      ? {
+          html: `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;">${facts.map(escapeHtml).join("<br>")}</p>`,
+          text: facts,
+        }
+      : undefined,
+    button: { label: "Descubrir mi regalo", url },
+    footer: "Recibes este correo porque participas en este intercambio.",
+  });
+  return {
+    subject: redo
+      ? `Se rehízo el sorteo de «${groupName}» 🎲`
+      : `¡Ya se hizo el sorteo de «${groupName}»! 🎁`,
+    html,
+    text,
+  };
 }

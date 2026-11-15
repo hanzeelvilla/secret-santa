@@ -46,3 +46,50 @@ export async function sendEmail(message: EmailMessage): Promise<void> {
   });
   if (error) throw new Error(`Resend: ${error.message}`);
 }
+
+/** La API de lotes de Resend admite hasta 100 correos por petición. */
+const BATCH_SIZE = 100;
+
+/**
+ * Envía varios correos (uno por destinatario, para poder personalizarlos) con
+ * la API de lotes de Resend. En desarrollo sin RESEND_API_KEY o EMAIL_FROM los
+ * imprime en la consola, igual que `sendEmail`.
+ */
+export async function sendEmails(messages: EmailMessage[]): Promise<void> {
+  if (messages.length === 0) return;
+
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!apiKey || !from) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Faltan RESEND_API_KEY o EMAIL_FROM para enviar correos");
+    }
+    for (const message of messages) {
+      console.log(
+        `
+📧 [correo no enviado: falta RESEND_API_KEY o EMAIL_FROM]
+Para: ${message.to}
+Asunto: ${message.subject}
+${message.text}
+`,
+      );
+    }
+    return;
+  }
+
+  const resend = new Resend(apiKey);
+  for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+    const chunk = messages.slice(i, i + BATCH_SIZE);
+    const { error } = await resend.batch.send(
+      chunk.map((message) => ({
+        from,
+        to: message.to,
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      })),
+    );
+    if (error) throw new Error(`Resend: ${error.message}`);
+  }
+}
