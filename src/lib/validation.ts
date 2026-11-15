@@ -38,6 +38,9 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Escribe tu contraseña"),
 });
 
+export type RegisterInput = z.input<typeof registerSchema>;
+export type LoginInput = z.input<typeof loginSchema>;
+
 export const groupSchema = z.object({
   name: z
     .string()
