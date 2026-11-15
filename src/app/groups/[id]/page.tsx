@@ -118,6 +118,9 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
         {isDrawn ? (
           receiver ? (
             <GiftReveal
+              // Cada sorteo (o rehacerlo) cambia `drawnAt`: la `key` hace que el
+              // regalo vuelva a aparecer tapado, aunque toque la misma persona.
+              key={group.drawnAt?.getTime()}
               receiverName={receiver.user.name}
               items={receiver.items}
             />
