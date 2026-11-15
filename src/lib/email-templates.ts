@@ -98,3 +98,39 @@ export function verificationEmail({ name, url }: { name: string; url: string }) 
   });
   return { subject: "Confirma tu correo en Secret Santa 🎅", html, text };
 }
+
+export function passwordResetEmail({ name, url }: { name: string; url: string }) {
+  const { html, text } = render({
+    preheader: "Elige una contraseña nueva para tu cuenta de Secret Santa",
+    title: "Restablece tu contraseña 🔑",
+    paragraphs: [
+      `¡Hola, ${escapeHtml(name)}! Recibimos una solicitud para restablecer la contraseña de tu cuenta.`,
+      "Usa el botón para elegir una nueva. El enlace vale por 1 hora y solo se puede usar una vez.",
+    ],
+    button: { label: "Elegir nueva contraseña", url },
+    footer:
+      "Si no lo pediste, ignora este correo: tu contraseña no cambiará.",
+  });
+  return { subject: "Restablece tu contraseña de Secret Santa 🔑", html, text };
+}
+
+export function passwordChangedEmail({
+  name,
+  resetUrl,
+}: {
+  name: string;
+  resetUrl: string;
+}) {
+  const { html, text } = render({
+    preheader: "Tu contraseña de Secret Santa se cambió",
+    title: "Tu contraseña cambió 🔒",
+    paragraphs: [
+      `¡Hola, ${escapeHtml(name)}! Te avisamos de que la contraseña de tu cuenta se acaba de cambiar y se cerraron tus otras sesiones.`,
+      "Si fuiste tú, no tienes que hacer nada.",
+    ],
+    button: { label: "No fui yo: restablecer contraseña", url: resetUrl },
+    footer:
+      "Si no reconoces este cambio, restablece tu contraseña de inmediato desde el botón.",
+  });
+  return { subject: "Tu contraseña de Secret Santa cambió 🔒", html, text };
+}

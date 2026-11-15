@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import { db } from "./db";
+import { isSessionStale } from "./session-validity";
 
 const COOKIE_NAME = "santa_session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
@@ -40,14 +41,19 @@ export async function deleteSession() {
   cookieStore.delete(COOKIE_NAME);
 }
 
-async function readUserId(): Promise<string | null> {
+async function readSession(): Promise<{
+  userId: string;
+  issuedAt: number | undefined;
+} | null> {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, getKey(), {
       algorithms: ["HS256"],
     });
-    return typeof payload.userId === "string" ? payload.userId : null;
+    return typeof payload.userId === "string"
+      ? { userId: payload.userId, issuedAt: payload.iat }
+      : null;
   } catch {
     return null;
   }
@@ -62,14 +68,23 @@ export type SessionUser = {
 
 /** Usuario de la sesión actual, o null si no hay sesión válida. */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
-  const userId = await readUserId();
-  if (!userId) return null;
+  const session = await readSession();
+  if (!session) return null;
   const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { id: true, name: true, email: true, emailVerifiedAt: true },
+    where: { id: session.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailVerifiedAt: true,
+      passwordChangedAt: true,
+    },
   });
   if (!user) return null;
-  const { emailVerifiedAt, ...rest } = user;
+  // Cambiar la contraseña cierra las sesiones anteriores en todos los dispositivos.
+  if (isSessionStale(session.issuedAt, user.passwordChangedAt)) return null;
+  const { emailVerifiedAt, passwordChangedAt, ...rest } = user;
+  void passwordChangedAt;
   return { ...rest, emailVerified: emailVerifiedAt !== null };
 });
 

@@ -17,6 +17,9 @@ model User {
 
   // null = el correo aún no se ha confirmado
   emailVerifiedAt DateTime?
+  // Cuándo se cambió la contraseña por última vez: las sesiones anteriores a
+  // esta fecha dejan de valer (null = nunca se ha cambiado).
+  passwordChangedAt DateTime?
   emailTokens     EmailToken[]
 
   ownedGroups Group[]

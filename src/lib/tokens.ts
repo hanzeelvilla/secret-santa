@@ -2,6 +2,8 @@ import { createHash, randomBytes } from "node:crypto";
 
 /** Tiempo de vida del enlace de confirmación de correo. */
 export const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+/** Tiempo de vida del enlace para restablecer la contraseña. */
+export const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 /** Espera mínima entre dos envíos del mismo correo. */
 export const RESEND_COOLDOWN_MS = 60 * 1000;
 /** Máximo de correos de confirmación por hora y cuenta. */

@@ -8,7 +8,7 @@ import { getCurrentUser, safeNext } from "@/lib/session";
 export const metadata: Metadata = { title: "Iniciar sesión" };
 
 async function Content({ searchParams }: PageProps<"/login">) {
-  const { next } = await searchParams;
+  const { next, reset } = await searchParams;
   const nextPath = typeof next === "string" ? safeNext(next, "") : "";
 
   if (await getCurrentUser()) redirect(nextPath || "/dashboard");
@@ -23,6 +23,14 @@ async function Content({ searchParams }: PageProps<"/login">) {
           ? "Inicia sesión para unirte al intercambio."
           : "Entra para ver tus intercambios."}
       </p>
+      {reset === "1" && (
+        <p
+          className="mb-4 rounded-xl bg-pine/10 p-3 text-sm font-semibold text-pine"
+          role="status"
+        >
+          Contraseña actualizada. Inicia sesión con la nueva 🎉
+        </p>
+      )}
       <AuthForm mode="login" next={nextPath || undefined} />
     </div>
   );

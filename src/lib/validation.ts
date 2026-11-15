@@ -28,13 +28,15 @@ const personName = z
   .min(2, "Tu nombre debe tener al menos 2 letras")
   .max(60, "Máximo 60 caracteres");
 
+const newPassword = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres")
+  .max(100, "Máximo 100 caracteres");
+
 export const registerSchema = z.object({
   name: personName,
   email,
-  password: z
-    .string()
-    .min(8, "La contraseña debe tener al menos 8 caracteres")
-    .max(100, "Máximo 100 caracteres"),
+  password: newPassword,
 });
 
 export const loginSchema = z.object({
@@ -43,6 +45,37 @@ export const loginSchema = z.object({
 });
 
 export const profileSchema = z.object({ name: personName });
+
+export const forgotPasswordSchema = z.object({ email });
+
+export const resetPasswordSchema = z
+  .object({
+    password: newPassword,
+    confirmPassword: z.string().min(1, "Confirma tu nueva contraseña"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Las contraseñas no coinciden",
+  });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Escribe tu contraseña actual"),
+    newPassword,
+    confirmPassword: z.string().min(1, "Confirma tu nueva contraseña"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Las contraseñas no coinciden",
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    path: ["newPassword"],
+    message: "La nueva contraseña debe ser distinta de la actual",
+  });
+
+export type ChangePasswordInput = z.input<typeof changePasswordSchema>;
+export type ResetPasswordInput = z.input<typeof resetPasswordSchema>;
+export type ForgotPasswordInput = z.input<typeof forgotPasswordSchema>;
 
 export type ProfileInput = z.input<typeof profileSchema>;
 export type RegisterInput = z.input<typeof registerSchema>;

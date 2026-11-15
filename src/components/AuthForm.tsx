@@ -1,34 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { type Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { login, register } from "@/actions/auth";
 import { loginSchema, registerSchema } from "@/lib/validation";
 import { Spinner } from "./buttons";
+import { PasswordInput } from "./PasswordInput";
 
 type AuthValues = { name: string; email: string; password: string };
-
-/** Ojo abierto (contraseña oculta) u ojo tachado (contraseña visible). */
-function EyeIcon({ off }: { off: boolean }) {
-  return (
-    <svg
-      className="size-5"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="3" />
-      {off && <path d="M4 4l16 16" />}
-    </svg>
-  );
-}
 
 export function AuthForm({
   mode,
@@ -39,7 +20,6 @@ export function AuthForm({
 }) {
   const isRegister = mode === "register";
   const [isPending, startTransition] = useTransition();
-  const [showPassword, setShowPassword] = useState(false);
   const {
     register: field,
     handleSubmit,
@@ -136,33 +116,27 @@ export function AuthForm({
         <label htmlFor="password" className="label">
           Contraseña
         </label>
-        <div className="relative">
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            className="input pr-11"
-            placeholder={isRegister ? "Mínimo 8 caracteres" : "Tu contraseña"}
-            autoComplete={isRegister ? "new-password" : "current-password"}
-            required
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            {...field("password")}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((value) => !value)}
-            aria-label={
-              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
-            aria-pressed={showPassword}
-            className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center rounded-r-xl text-pine/60 hover:text-pine focus-visible:outline-2 focus-visible:outline-gold"
-          >
-            <EyeIcon off={showPassword} />
-          </button>
-        </div>
+        <PasswordInput
+          id="password"
+          placeholder={isRegister ? "Mínimo 8 caracteres" : "Tu contraseña"}
+          autoComplete={isRegister ? "new-password" : "current-password"}
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? "password-error" : undefined}
+          {...field("password")}
+        />
         {errors.password && (
           <p id="password-error" className="field-error">
             {errors.password.message}
+          </p>
+        )}
+        {!isRegister && (
+          <p className="mt-2 text-right text-sm">
+            <Link
+              href="/forgot-password"
+              className="font-bold text-berry underline underline-offset-2"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
           </p>
         )}
       </div>

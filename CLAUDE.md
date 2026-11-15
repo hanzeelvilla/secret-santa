@@ -23,9 +23,9 @@ Variables (en `.env`, que nunca se sube; plantilla en `.env.example`):
 Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegue en Vercel: un push a `main` despliega (las mismas variables deben existir en Vercel).
 
 ## Estructura
-- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`, `verify-email`).
+- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`, `verify-email`, `forgot-password`, `reset-password`).
 - `src/actions` — server actions (`auth.ts` incluye `updateProfile`, `groups.ts`, `wishlist.ts`).
-- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`, `tokens.ts` (tokens y esperas, con test), `email.ts` (Resend), `email-templates.ts`, `verification.ts`.
+- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`, `tokens.ts` (tokens y esperas, con test), `email.ts` (Resend), `email-templates.ts`, `email-tokens.ts` (tokens de correo genéricos), `verification.ts`, `password-reset.ts`, `session-validity.ts` (+test).
 - `src/components` — componentes de UI; `buttons.tsx` exporta `SubmitButton` y `Spinner`.
 - `src/app/globals.css` — tema (colores `pine`, `berry`, `gold`, `cream`, `ink`) y clases reutilizables: `.card`, `.btn*`, `.label`, `.input`, `.select`, `.field-error`, `.chip`.
 
@@ -34,7 +34,8 @@ Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegu
 - Tras el sorteo nadie puede salirse ni ser quitado (rompería la cadena de regalos); el organizador puede rehacer el sorteo.
 - `/join/<código>` es pública: quien no tiene sesión ve la tarjeta de la invitación con botones para iniciar sesión o registrarse (vuelve ahí con `?next=`); unirse (`joinGroup`) sí exige sesión.
 - **Correo confirmado obligatorio (bloqueo total):** `requireUser` redirige a `/verify-email` si `emailVerifiedAt` es null; solo `getCurrentUser` deja pasar a cuentas sin confirmar. El registro envía el correo con un token de 24 h (solo se guarda su hash en `EmailToken`), `/verify-email?token=` pide un clic para confirmar (los escáneres de correo abren los enlaces) y el reenvío espera 60 s y se limita a 5 por hora.
-- **Correos (Resend):** `sendEmail` en `src/lib/email.ts`; plantillas HTML con estilos en línea en `src/lib/email-templates.ts`. Pendiente de construir sobre esto: cambio de contraseña (`EmailTokenType.PASSWORD_RESET`), aviso de grupo actualizado y aviso de sorteo hecho.
+- **Correos (Resend):** `sendEmail` en `src/lib/email.ts`; plantillas HTML con estilos en línea en `src/lib/email-templates.ts`. Pendiente de construir sobre esto: aviso de grupo actualizado y aviso de sorteo hecho.
+- **Contraseña:** se cambia desde `/profile` (pide la actual) o con "¿Olvidaste tu contraseña?" (`/forgot-password` → correo con token `PASSWORD_RESET` de 1 h → `/reset-password`). `requestPasswordReset` responde siempre igual para no revelar qué correos existen. Al cambiarla se guarda `User.passwordChangedAt` y `getCurrentUser` descarta las sesiones (JWT) anteriores a esa fecha; quien la cambia desde el perfil recibe una sesión nueva.
 - Los permisos se validan siempre en el servidor (`src/actions/groups.ts`), no solo ocultando botones. En Prisma, para vaciar un campo opcional hay que enviar `null` (con `undefined` no se toca).
 
 ## Preferencias para formularios (aplican a todo formulario nuevo o que se modifique)
