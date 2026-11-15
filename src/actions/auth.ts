@@ -1,13 +1,20 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { createSession, deleteSession, safeNext } from "@/lib/session";
+import {
+  createSession,
+  deleteSession,
+  requireUser,
+  safeNext,
+} from "@/lib/session";
 import {
   type FormState,
   loginSchema,
+  profileSchema,
   registerSchema,
   toFormState,
 } from "@/lib/validation";
@@ -72,6 +79,26 @@ export async function login(
 
   await createSession(user.id);
   redirect(safeNext(formData.get("next")));
+}
+
+/** Actualiza el nombre de la persona con sesión (no recibe ningún id del cliente). */
+export async function updateProfile(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const user = await requireUser("/profile");
+
+  const parsed = profileSchema.safeParse({ name: formData.get("name") });
+  if (!parsed.success) return toFormState(parsed.error);
+
+  await db.user.update({
+    where: { id: user.id },
+    data: { name: parsed.data.name },
+  });
+
+  // El nombre aparece en el header, el dashboard y todos los grupos.
+  revalidatePath("/", "layout");
+  return { success: "Nombre actualizado ✅" };
 }
 
 export async function logout() {

@@ -3,6 +3,8 @@ import * as z from "zod";
 export type FormState =
   | {
       error?: string;
+      /** Mensaje de confirmación tras guardar (p. ej. al editar el perfil). */
+      success?: string;
       fieldErrors?: Record<string, string[] | undefined>;
     }
   | undefined;
@@ -20,12 +22,14 @@ const email = z
   .toLowerCase()
   .pipe(z.email("Escribe un correo válido"));
 
+const personName = z
+  .string()
+  .trim()
+  .min(2, "Tu nombre debe tener al menos 2 letras")
+  .max(60, "Máximo 60 caracteres");
+
 export const registerSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Tu nombre debe tener al menos 2 letras")
-    .max(60, "Máximo 60 caracteres"),
+  name: personName,
   email,
   password: z
     .string()
@@ -38,6 +42,9 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Escribe tu contraseña"),
 });
 
+export const profileSchema = z.object({ name: personName });
+
+export type ProfileInput = z.input<typeof profileSchema>;
 export type RegisterInput = z.input<typeof registerSchema>;
 export type LoginInput = z.input<typeof loginSchema>;
 

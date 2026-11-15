@@ -22,8 +22,8 @@ Variables (en `.env`, que nunca se sube; plantilla en `.env.example`):
 Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegue en Vercel: un push a `main` despliega (las mismas tres variables deben existir en Vercel).
 
 ## Estructura
-- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`).
-- `src/actions` — server actions (`auth.ts`, `groups.ts`, `wishlist.ts`).
+- `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`).
+- `src/actions` — server actions (`auth.ts` incluye `updateProfile`, `groups.ts`, `wishlist.ts`).
 - `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`.
 - `src/components` — componentes de UI; `buttons.tsx` exporta `SubmitButton` y `Spinner`.
 - `src/app/globals.css` — tema (colores `pine`, `berry`, `gold`, `cream`, `ink`) y clases reutilizables: `.card`, `.btn*`, `.label`, `.input`, `.select`, `.field-error`, `.chip`.

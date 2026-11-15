@@ -24,9 +24,14 @@ async function UserNav() {
       <Link href="/dashboard" className="btn btn-ghost">
         Mis grupos
       </Link>
-      <span className="hidden max-w-40 truncate text-sm text-snow/70 sm:inline">
-        {user.name}
-      </span>
+      <Link
+        href="/profile"
+        className="btn btn-ghost max-w-40"
+        aria-label="Mi perfil"
+      >
+        <span className="hidden truncate sm:inline">{user.name}</span>
+        <span className="sm:hidden">Perfil</span>
+      </Link>
       <form action={logout}>
         <button type="submit" className="btn btn-ghost">
           Salir
