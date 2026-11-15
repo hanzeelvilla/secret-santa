@@ -68,6 +68,10 @@ model WishlistItem {
 model Assignment {
   id String @id @default(cuid())
 
+  // Cuándo abrió quien regala su regalo (null = aún tapado). Al rehacer el
+  // sorteo las asignaciones se crean de nuevo, así que vuelve a quedar tapado.
+  revealedAt DateTime?
+
   groupId    String
   group      Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
   giverId    String

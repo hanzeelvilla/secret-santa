@@ -61,7 +61,7 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
   const assignment = isDrawn
     ? await db.assignment.findUnique({
         where: { groupId_giverId: { groupId: id, giverId: user.id } },
-        select: { receiverId: true },
+        select: { receiverId: true, revealedAt: true },
       })
     : null;
   const receiver = assignment
@@ -121,6 +121,8 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
               // Cada sorteo (o rehacerlo) cambia `drawnAt`: la `key` hace que el
               // regalo vuelva a aparecer tapado, aunque toque la misma persona.
               key={group.drawnAt?.getTime()}
+              groupId={group.id}
+              initiallyOpen={assignment?.revealedAt != null}
               receiverName={receiver.user.name}
               items={receiver.items}
             />

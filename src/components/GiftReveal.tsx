@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { markGiftRevealed } from "@/actions/groups";
 
 export type RevealItem = {
   id: string;
@@ -10,18 +11,27 @@ export type RevealItem = {
 };
 
 export function GiftReveal({
+  groupId,
+  initiallyOpen,
   receiverName,
   items,
 }: {
+  groupId: string;
+  /** Si la persona ya había abierto el regalo (se guarda en la base de datos). */
+  initiallyOpen: boolean;
   receiverName: string;
   items: RevealItem[];
 }) {
-  const [stage, setStage] = useState<"closed" | "opening" | "open">("closed");
+  const [stage, setStage] = useState<"closed" | "opening" | "open">(
+    initiallyOpen ? "open" : "closed",
+  );
 
   function open() {
     if (stage !== "closed") return;
     setStage("opening");
     setTimeout(() => setStage("open"), 750);
+    // Recordar que ya lo abrió: al volver a entrar aparece abierto.
+    void markGiftRevealed(groupId);
   }
 
   if (stage !== "open") {
@@ -96,14 +106,6 @@ export function GiftReveal({
           </ul>
         )}
       </div>
-
-      <button
-        type="button"
-        className="btn btn-outline mt-4"
-        onClick={() => setStage("closed")}
-      >
-        Volver a envolver
-      </button>
     </div>
   );
 }

@@ -157,6 +157,18 @@ export async function deleteGroup(groupId: string) {
   redirect("/dashboard");
 }
 
+/** Guarda que quien regala ya abrió su regalo, para mostrarlo abierto al volver. */
+export async function markGiftRevealed(groupId: string) {
+  const user = await requireUser();
+
+  // Solo se marca la asignación propia (como giver) y solo la primera vez.
+  const { count } = await db.assignment.updateMany({
+    where: { groupId, giverId: user.id, revealedAt: null },
+    data: { revealedAt: new Date() },
+  });
+  if (count > 0) revalidatePath(`/groups/${groupId}`);
+}
+
 /** Hace (o rehace) el sorteo. Solo el organizador. */
 export async function runDraw(groupId: string): Promise<FormState> {
   const user = await requireUser();
