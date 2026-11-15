@@ -250,6 +250,8 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
                     pendingText="Quitando…"
                     spinner
                     confirmMessage={`¿Quitar a ${member.user.name} del grupo? Se borrará su lista de deseos.`}
+                    confirmLabel="Sí, quitar"
+                    confirmIcon="🚪"
                   >
                     Quitar
                   </SubmitButton>
@@ -271,6 +273,8 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
                 pendingText="Eliminando…"
                 spinner
                 confirmMessage={`¿Eliminar "${group.name}"? Se borrarán las listas y el sorteo de todos. No se puede deshacer.`}
+                confirmLabel="Sí, eliminar"
+                confirmIcon="🗑️"
               >
                 Eliminar grupo
               </SubmitButton>
@@ -283,6 +287,8 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
                   pendingText="Saliendo…"
                   spinner
                   confirmMessage="¿Salir de este intercambio? Se borrará tu lista de deseos."
+                  confirmLabel="Sí, salir"
+                  confirmIcon="👋"
                 >
                   Salir del grupo
                 </SubmitButton>

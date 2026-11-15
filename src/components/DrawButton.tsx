@@ -23,6 +23,8 @@ export function DrawButton({
           className="btn btn-danger"
           pendingText="Sorteando…"
           confirmMessage="¿Rehacer el sorteo? Todos recibirán una persona nueva y la asignación anterior se perderá."
+          confirmLabel="Sí, rehacer"
+          confirmIcon="🎲"
         >
           Rehacer sorteo
         </SubmitButton>
@@ -31,6 +33,8 @@ export function DrawButton({
           className="btn btn-primary px-7 py-3 text-base"
           pendingText="Sorteando…"
           confirmMessage="¿Hacer el sorteo ahora? Después ya no podrá unirse nadie más."
+          confirmLabel="¡Sortear!"
+          confirmIcon="🎁"
         >
           🎲 Hacer el sorteo
         </SubmitButton>
