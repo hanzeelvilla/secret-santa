@@ -25,7 +25,7 @@ Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegu
 ## Estructura
 - `src/app` — rutas (`login`, `register`, `dashboard`, `groups/new`, `groups/[id]`, `groups/[id]/edit`, `join/[code]`, `profile`, `verify-email`, `forgot-password`, `reset-password`).
 - `src/actions` — server actions (`auth.ts` incluye `updateProfile`, `groups.ts`, `wishlist.ts`).
-- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`, `tokens.ts` (tokens y esperas, con test), `email.ts` (Resend), `email-templates.ts`, `email-tokens.ts` (tokens de correo genéricos), `verification.ts`, `password-reset.ts`, `group-changes.ts` (+test), `group-emails.ts`, `session-validity.ts` (+test).
+- `src/lib` — `db.ts`, `session.ts`, `validation.ts` (schemas zod compartidos cliente/servidor), `draw.ts` (+ test), `format.ts`, `tokens.ts` (tokens y esperas, con test), `email.ts` (Resend), `email-templates.ts`, `email-tokens.ts` (tokens de correo genéricos), `verification.ts`, `password-reset.ts`, `group-changes.ts` (+test), `group-list.ts` (+test: búsqueda, orden, filtros y paginación de `/dashboard`; el estado vive en `searchParams`, se resuelve en el servidor con Prisma), `group-emails.ts`, `session-validity.ts` (+test).
 - `src/components` — componentes de UI; `buttons.tsx` exporta `SubmitButton` y `Spinner`.
 - `src/app/globals.css` — tema (colores `pine`, `berry`, `gold`, `cream`, `ink`) y clases reutilizables: `.card`, `.btn*`, `.label`, `.input`, `.select`, `.field-error`, `.chip`.
 

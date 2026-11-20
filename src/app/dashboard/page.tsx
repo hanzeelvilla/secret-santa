@@ -1,19 +1,51 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { GroupListToolbar } from "@/components/GroupListToolbar";
 import { PageLoading } from "@/components/Header";
+import { Pagination } from "@/components/Pagination";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/format";
+import {
+  buildGroupListQuery,
+  groupListHref,
+  PAGE_SIZE,
+  pageCount,
+  parseGroupListParams,
+  todayIso,
+} from "@/lib/group-list";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Mis grupos" };
 
-async function Content() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+async function Content({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser("/dashboard");
 
+  const requested = parseGroupListParams(await searchParams);
+  const { where, orderBy } = buildGroupListQuery(
+    requested,
+    user.id,
+    todayIso(),
+  );
+
+  // Total del usuario (decide si hay barra de herramientas) y total filtrado
+  // (decide las páginas). Una página fuera de rango se ajusta a la última.
+  const [totalAll, totalFiltered] = await Promise.all([
+    db.membership.count({ where: { userId: user.id } }),
+    db.membership.count({ where }),
+  ]);
+  const params = {
+    ...requested,
+    page: Math.min(requested.page, pageCount(totalFiltered)),
+  };
+
   const memberships = await db.membership.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
+    where,
+    orderBy,
+    skip: (params.page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     select: {
       group: {
         select: {
@@ -43,7 +75,27 @@ async function Content() {
         </Link>
       </div>
 
-      {memberships.length === 0 ? (
+      {totalAll > 0 && <GroupListToolbar params={params} />}
+
+      {totalAll > 0 && memberships.length === 0 ? (
+        <div className="card mt-6 text-center">
+          <p className="text-5xl" aria-hidden="true">
+            🔍
+          </p>
+          <h2 className="mt-2 font-display text-3xl font-bold text-berry">
+            Ningún grupo coincide
+          </h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-ink/70">
+            Prueba con otra búsqueda o quita algún filtro.
+          </p>
+          <Link
+            href={groupListHref({ sort: params.sort })}
+            className="btn btn-outline mt-4"
+          >
+            Limpiar filtros
+          </Link>
+        </div>
+      ) : memberships.length === 0 ? (
         <div className="card mt-6 text-center">
           <p className="text-5xl" aria-hidden="true">
             🎁
@@ -100,14 +152,20 @@ async function Content() {
           ))}
         </ul>
       )}
+
+      <Pagination params={params} total={totalFiltered} />
     </>
   );
 }
 
-export default function DashboardPage() {
+export default function DashboardPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <Suspense fallback={<PageLoading />}>
-      <Content />
+      <Content searchParams={searchParams} />
     </Suspense>
   );
 }
