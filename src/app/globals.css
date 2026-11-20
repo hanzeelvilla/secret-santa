@@ -87,7 +87,10 @@ body {
   height: 22px;
   padding: 0 8px;
   border-top: 2px solid #0a2219;
-  overflow: hidden;
+  /* Sin recorte vertical: con `overflow: hidden` el resplandor de los focos
+     (box-shadow) se cortaba en los bordes y parecía un cuadro alrededor. */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 .lights span {
   width: 9px;
