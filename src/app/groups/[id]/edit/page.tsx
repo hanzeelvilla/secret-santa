@@ -22,6 +22,7 @@ async function Content({ params }: PageProps<"/groups/[id]/edit">) {
       budget: true,
       currency: true,
       exchangeDate: true,
+      exchangeTime: true,
       ownerId: true,
       memberships: { where: { userId: user.id }, select: { id: true } },
     },
@@ -58,6 +59,7 @@ async function Content({ params }: PageProps<"/groups/[id]/edit">) {
             group.budget,
             group.currency,
             group.exchangeDate,
+            group.exchangeTime,
           ])}
           group={{
             id: group.id,
@@ -66,6 +68,7 @@ async function Content({ params }: PageProps<"/groups/[id]/edit">) {
             budget: group.budget,
             currency: group.currency,
             exchangeDate: group.exchangeDate,
+            exchangeTime: group.exchangeTime,
           }}
         />
       </div>

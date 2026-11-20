@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 
 const DAY = 86_400_000;
 
-/** Cuenta regresiva a la medianoche local del día del intercambio. */
-export function Countdown({ date }: { date: string }) {
+/**
+ * Cuenta regresiva al día del intercambio (medianoche local) o, si hay hora
+ * ("HH:mm"), a esa hora local.
+ */
+export function Countdown({ date, time }: { date: string; time?: string }) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -23,7 +26,8 @@ export function Countdown({ date }: { date: string }) {
   }
 
   const [y, m, d] = date.split("-").map(Number);
-  const target = new Date(y, m - 1, d).getTime();
+  const [hour, minute] = time ? time.split(":").map(Number) : [0, 0];
+  const target = new Date(y, m - 1, d, hour, minute).getTime();
   const diff = target - now;
 
   if (diff <= -DAY) {

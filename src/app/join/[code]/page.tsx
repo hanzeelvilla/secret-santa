@@ -27,6 +27,7 @@ async function Content({ params }: PageProps<"/join/[code]">) {
       budget: true,
       currency: true,
       exchangeDate: true,
+      exchangeTime: true,
       drawnAt: true,
       owner: { select: { name: true } },
       memberships: { select: { userId: true } },

@@ -7,6 +7,7 @@ const base: GroupSnapshot = {
   budget: 500,
   currency: "MXN",
   exchangeDate: "2026-12-24",
+  exchangeTime: "18:00",
 };
 
 describe("diffGroup", () => {
@@ -63,6 +64,17 @@ describe("diffGroup", () => {
     expect(diffGroup(base, { ...base, exchangeDate: "2026-12-31" })).toHaveLength(1);
   });
 
+  it("detecta hora añadida, cambiada o quitada", () => {
+    const changed = diffGroup(base, { ...base, exchangeTime: "20:30" });
+    expect(changed).toEqual([
+      { label: "Hora del intercambio", from: "6:00 p. m.", to: "8:30 p. m." },
+    ]);
+    const removed = diffGroup(base, { ...base, exchangeTime: null });
+    expect(removed[0]).toMatchObject({ to: "Sin hora" });
+    const added = diffGroup({ ...base, exchangeTime: null }, base);
+    expect(added[0]).toMatchObject({ from: "Sin hora" });
+  });
+
   it("junta varios cambios en el orden de la pantalla", () => {
     const changes = diffGroup(base, {
       name: "Otra",
@@ -70,12 +82,14 @@ describe("diffGroup", () => {
       budget: 800,
       currency: "MXN",
       exchangeDate: null,
+      exchangeTime: null,
     });
     expect(changes.map((c) => c.label)).toEqual([
       "Nombre",
       "Descripción",
       "Presupuesto",
       "Fecha del intercambio",
+      "Hora del intercambio",
     ]);
   });
 });

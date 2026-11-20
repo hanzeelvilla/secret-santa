@@ -81,31 +81,44 @@ export type ProfileInput = z.input<typeof profileSchema>;
 export type RegisterInput = z.input<typeof registerSchema>;
 export type LoginInput = z.input<typeof loginSchema>;
 
-export const groupSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "El nombre debe tener al menos 2 letras")
-    .max(60, "Máximo 60 caracteres"),
-  description: z.preprocess(
-    blankToUndefined,
-    z.string().trim().max(300, "Máximo 300 caracteres").optional(),
-  ),
-  budget: z.preprocess(
-    blankToUndefined,
-    z.coerce
-      .number("Escribe un monto válido")
-      .int("Usa un monto sin decimales")
-      .positive("El monto debe ser mayor a 0")
-      .max(1_000_000, "Ese monto es demasiado alto")
-      .optional(),
-  ),
-  currency: z.enum(CURRENCIES).default("MXN"),
-  exchangeDate: z.preprocess(
-    blankToUndefined,
-    z.iso.date("Escribe una fecha válida").optional(),
-  ),
-});
+export const groupSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "El nombre debe tener al menos 2 letras")
+      .max(60, "Máximo 60 caracteres"),
+    description: z.preprocess(
+      blankToUndefined,
+      z.string().trim().max(300, "Máximo 300 caracteres").optional(),
+    ),
+    budget: z.preprocess(
+      blankToUndefined,
+      z.coerce
+        .number("Escribe un monto válido")
+        .int("Usa un monto sin decimales")
+        .positive("El monto debe ser mayor a 0")
+        .max(1_000_000, "Ese monto es demasiado alto")
+        .optional(),
+    ),
+    currency: z.enum(CURRENCIES).default("MXN"),
+    exchangeDate: z.preprocess(
+      blankToUndefined,
+      z.iso.date("Escribe una fecha válida").optional(),
+    ),
+    // "HH:mm" en 24 h; solo se acepta junto con una fecha.
+    exchangeTime: z.preprocess(
+      blankToUndefined,
+      z
+        .string()
+        .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Escribe una hora válida")
+        .optional(),
+    ),
+  })
+  .refine((data) => !data.exchangeTime || !!data.exchangeDate, {
+    path: ["exchangeTime"],
+    message: "Elige primero la fecha",
+  });
 
 export const itemSchema = z.object({
   title: z

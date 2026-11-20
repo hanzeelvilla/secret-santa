@@ -12,7 +12,7 @@ import { WishlistEditor } from "@/components/WishlistEditor";
 import { SubmitButton } from "@/components/buttons";
 import { db } from "@/lib/db";
 import { MIN_PARTICIPANTS } from "@/lib/draw";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Intercambio" };
@@ -30,6 +30,7 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
       budget: true,
       currency: true,
       exchangeDate: true,
+      exchangeTime: true,
       inviteCode: true,
       drawnAt: true,
       ownerId: true,
@@ -95,12 +96,17 @@ async function Content({ params }: PageProps<"/groups/[id]">) {
             </span>
           )}
           {group.exchangeDate && (
-            <span className="chip">📅 {formatDate(group.exchangeDate)}</span>
+            <span className="chip">
+              📅 {formatDateTime(group.exchangeDate, group.exchangeTime)}
+            </span>
           )}
         </div>
         {group.exchangeDate && (
           <div className="mt-4">
-            <Countdown date={group.exchangeDate} />
+            <Countdown
+              date={group.exchangeDate}
+              time={group.exchangeTime ?? undefined}
+            />
           </div>
         )}
         {isOwner && (

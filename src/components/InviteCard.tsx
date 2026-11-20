@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 
 /** Tarjeta de invitación a un grupo; el pie (botones) lo pone quien la usa. */
 export function InviteCard({
@@ -13,6 +13,7 @@ export function InviteCard({
     budget: number | null;
     currency: string;
     exchangeDate: string | null;
+    exchangeTime: string | null;
     owner: { name: string };
   };
   count: number;
@@ -44,7 +45,9 @@ export function InviteCard({
           </span>
         )}
         {group.exchangeDate && (
-          <span className="chip">📅 {formatDate(group.exchangeDate)}</span>
+          <span className="chip">
+            📅 {formatDateTime(group.exchangeDate, group.exchangeTime)}
+          </span>
         )}
       </div>
       {children}

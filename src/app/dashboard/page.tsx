@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PageLoading } from "@/components/Header";
 import { db } from "@/lib/db";
-import { formatDate } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Mis grupos" };
@@ -20,6 +20,7 @@ async function Content() {
           id: true,
           name: true,
           exchangeDate: true,
+          exchangeTime: true,
           drawnAt: true,
           ownerId: true,
           _count: { select: { memberships: true } },
@@ -85,7 +86,7 @@ async function Content() {
                   </span>
                   {group.exchangeDate && (
                     <span className="chip">
-                      📅 {formatDate(group.exchangeDate)}
+                      📅 {formatDateTime(group.exchangeDate, group.exchangeTime)}
                     </span>
                   )}
                   <span

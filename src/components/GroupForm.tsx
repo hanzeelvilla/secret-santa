@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Controller, type Resolver, useForm } from "react-hook-form";
+import {
+  Controller,
+  type Resolver,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createGroup, updateGroup } from "@/actions/groups";
 import { CURRENCIES, groupSchema } from "@/lib/validation";
 import { Spinner } from "./buttons";
 import { DatePicker } from "./DatePicker";
 import { NotifyCheckbox } from "./NotifyCheckbox";
+import { TimePicker } from "./TimePicker";
 
 type GroupValues = {
   name: string;
@@ -16,6 +22,7 @@ type GroupValues = {
   budget: string;
   currency: string;
   exchangeDate: string;
+  exchangeTime: string;
 };
 
 /** Datos de un grupo existente; si se pasan, el formulario edita en vez de crear. */
@@ -26,6 +33,7 @@ export type EditableGroup = {
   budget: number | null;
   currency: string;
   exchangeDate: string | null;
+  exchangeTime: string | null;
 };
 
 export function GroupForm({ group }: { group?: EditableGroup }) {
@@ -38,6 +46,7 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
     budget: group?.budget != null ? String(group.budget) : "",
     currency: group?.currency ?? "MXN",
     exchangeDate: group?.exchangeDate ?? "",
+    exchangeTime: group?.exchangeTime ?? "",
   };
   const [isPending, startTransition] = useTransition();
   // Siempre empieza marcada; solo aplica al editar.
@@ -45,6 +54,7 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
   const {
     register,
     control,
+    setValue,
     handleSubmit,
     setError,
     clearErrors,
@@ -55,6 +65,8 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
     reValidateMode: "onChange",
     defaultValues: initial,
   });
+
+  const hasDate = !!useWatch({ control, name: "exchangeDate" });
 
   const onValid = (values: GroupValues) => {
     clearErrors("root");
@@ -139,7 +151,7 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div>
         <div>
           <label htmlFor="budget" className="label">
             Presupuesto sugerido{" "}
@@ -176,7 +188,10 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
             </p>
           )}
         </div>
+      </div>
 
+      {/* Fecha y hora van juntas, lado a lado. */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="exchangeDate" className="label">
             Fecha del intercambio{" "}
@@ -189,7 +204,13 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
               <DatePicker
                 id="exchangeDate"
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  // La hora solo existe junto a una fecha.
+                  if (!value) {
+                    setValue("exchangeTime", "", { shouldValidate: true });
+                  }
+                }}
                 onBlur={field.onBlur}
                 invalid={!!errors.exchangeDate}
                 describedBy={errors.exchangeDate ? "exchangeDate-error" : undefined}
@@ -199,6 +220,33 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
           {errors.exchangeDate && (
             <p id="exchangeDate-error" className="field-error">
               {errors.exchangeDate.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="exchangeTime" className="label">
+            Hora del intercambio{" "}
+            <span className="font-normal text-ink/50">(opcional)</span>
+          </label>
+          <Controller
+            control={control}
+            name="exchangeTime"
+            render={({ field }) => (
+              <TimePicker
+                id="exchangeTime"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                disabled={!hasDate}
+                invalid={!!errors.exchangeTime}
+                describedBy={errors.exchangeTime ? "exchangeTime-error" : undefined}
+              />
+            )}
+          />
+          {errors.exchangeTime && (
+            <p id="exchangeTime-error" className="field-error">
+              {errors.exchangeTime.message}
             </p>
           )}
         </div>

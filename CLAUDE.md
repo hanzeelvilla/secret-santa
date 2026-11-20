@@ -46,7 +46,7 @@ Esquema en `prisma/schema.prisma`; migraciones en `prisma/migrations`. Despliegu
    - Los errores que devuelve la server action se pintan con `setError` (por campo o `root`); los valores escritos no deben perderse.
    - Referencias: `src/components/AuthForm.tsx` y `src/components/GroupForm.tsx`.
 2. **Spinner en el botón de envío**: usar `Spinner` de `src/components/buttons.tsx`, deshabilitar el botón mientras envía (`useTransition`) y cambiar el texto a uno de progreso ("Creando grupo…", "Entrando…").
-3. **Fechas**: no usar `<input type="date">`; usar `DatePicker` (`src/components/DatePicker.tsx`). El valor es `"AAAA-MM-DD"` (sin zona horaria) y se muestra con `formatDate`.
+3. **Fechas**: no usar `<input type="date">`; usar `DatePicker` (`src/components/DatePicker.tsx`). El valor es `"AAAA-MM-DD"` (sin zona horaria) y se muestra con `formatDate`. **Hora**: tampoco `<input type="time">`; usar `TimePicker` (`src/components/TimePicker.tsx`). El valor es `"HH:mm"` en 24 h (sin zona horaria), se guarda en `Group.exchangeTime`, solo existe junto a una fecha y se muestra con `formatTime`/`formatDateTime` (12 h, "6:30 p. m.").
 4. **Selects**: clase `input select` (flecha propia con espacio al borde), no el estilo nativo.
 
 Pendiente de adoptar estas convenciones: `WishlistEditor`, `DrawButton` y el botón de unirse (`SubmitButton` ya admite `spinner`).

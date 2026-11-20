@@ -1,4 +1,4 @@
-import { formatDate, formatMoney } from "./format";
+import { formatDate, formatMoney, formatTime } from "./format";
 
 export type GroupSnapshot = {
   name: string;
@@ -6,6 +6,7 @@ export type GroupSnapshot = {
   budget: number | null;
   currency: string;
   exchangeDate: string | null;
+  exchangeTime: string | null;
 };
 
 export type GroupChange = { label: string; from: string; to: string };
@@ -23,6 +24,9 @@ const describeBudget = (budget: number | null, currency: string) =>
 
 const describeDate = (value: string | null) =>
   value ? formatDate(value) : "Sin fecha";
+
+const describeTime = (value: string | null) =>
+  value ? formatTime(value) : "Sin hora";
 
 /**
  * Qué cambió entre dos versiones de un grupo, ya redactado en español para el
@@ -61,6 +65,14 @@ export function diffGroup(
       label: "Fecha del intercambio",
       from: describeDate(before.exchangeDate),
       to: describeDate(after.exchangeDate),
+    });
+  }
+
+  if (before.exchangeTime !== after.exchangeTime) {
+    changes.push({
+      label: "Hora del intercambio",
+      from: describeTime(before.exchangeTime),
+      to: describeTime(after.exchangeTime),
     });
   }
 

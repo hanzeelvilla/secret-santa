@@ -36,6 +36,8 @@ model Group {
   currency    String  @default("MXN")
   // Fecha del intercambio como "AAAA-MM-DD" (solo fecha, sin zona horaria)
   exchangeDate String?
+  // Hora del intercambio como "HH:mm" (24 h, sin zona horaria); solo con fecha
+  exchangeTime String?
   inviteCode  String    @unique
   drawnAt     DateTime?
   createdAt   DateTime  @default(now())

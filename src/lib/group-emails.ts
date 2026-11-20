@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { getAppUrl, sendEmails, type EmailMessage } from "@/lib/email";
 import { drawDoneEmail, groupUpdatedEmail } from "@/lib/email-templates";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 import type { GroupChange } from "@/lib/group-changes";
 
 /**
@@ -64,6 +64,7 @@ export async function notifyDrawDone(
         budget: true,
         currency: true,
         exchangeDate: true,
+        exchangeTime: true,
         owner: { select: { name: true } },
         memberships: {
           select: { user: { select: { name: true, email: true } } },
@@ -80,7 +81,9 @@ export async function notifyDrawDone(
         ownerName: group.owner.name,
         groupName: group.name,
         redo,
-        exchangeDate: group.exchangeDate ? formatDate(group.exchangeDate) : null,
+        exchangeDate: group.exchangeDate
+          ? formatDateTime(group.exchangeDate, group.exchangeTime)
+          : null,
         budget:
           group.budget !== null ? formatMoney(group.budget, group.currency) : null,
         url,

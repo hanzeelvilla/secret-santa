@@ -23,6 +23,7 @@ export async function createGroup(
     budget: formData.get("budget"),
     currency: formData.get("currency") ?? undefined,
     exchangeDate: formData.get("exchangeDate"),
+    exchangeTime: formData.get("exchangeTime"),
   });
   if (!parsed.success) return toFormState(parsed.error);
 
@@ -57,6 +58,7 @@ export async function updateGroup(
       budget: true,
       currency: true,
       exchangeDate: true,
+      exchangeTime: true,
     },
   });
   if (!group) redirect(`/groups/${groupId}`);
@@ -67,10 +69,12 @@ export async function updateGroup(
     budget: formData.get("budget"),
     currency: formData.get("currency") ?? undefined,
     exchangeDate: formData.get("exchangeDate"),
+    exchangeTime: formData.get("exchangeTime"),
   });
   if (!parsed.success) return toFormState(parsed.error);
 
-  const { name, description, budget, currency, exchangeDate } = parsed.data;
+  const { name, description, budget, currency, exchangeDate, exchangeTime } =
+    parsed.data;
   const updated = {
     name,
     currency,
@@ -79,6 +83,8 @@ export async function updateGroup(
     description: description ?? null,
     budget: budget ?? null,
     exchangeDate: exchangeDate ?? null,
+    // La hora solo existe junto a una fecha (el schema ya lo garantiza).
+    exchangeTime: exchangeDate ? (exchangeTime ?? null) : null,
   };
   await db.group.update({ where: { id: groupId }, data: updated });
 
