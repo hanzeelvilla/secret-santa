@@ -46,6 +46,7 @@ export async function updateGroup(
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser(`/groups/${groupId}/edit`);
+  const notify = formData.get("notify") === "on";
 
   const group = await db.group.findFirst({
     where: { id: groupId, ownerId: user.id },
@@ -84,7 +85,7 @@ export async function updateGroup(
   // Se avisa a los participantes solo si algo cambió de verdad; el correo sale
   // después de responder y un fallo de envío no afecta al guardado.
   const changes = diffGroup(group, updated);
-  if (changes.length > 0) {
+  if (notify && changes.length > 0) {
     after(() => notifyGroupUpdated(groupId, changes));
   }
 
@@ -185,7 +186,12 @@ export async function markGiftRevealed(groupId: string) {
 }
 
 /** Hace (o rehace) el sorteo. Solo el organizador. */
-export async function runDraw(groupId: string): Promise<FormState> {
+export async function runDraw(
+  groupId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const notify = formData.get("notify") === "on";
   const user = await requireUser();
 
   const group = await db.group.findUnique({
@@ -217,8 +223,11 @@ export async function runDraw(groupId: string): Promise<FormState> {
 
   revalidatePath(`/groups/${groupId}`);
 
-  // Aviso a todos los participantes (sin decir a quién le toca a nadie).
-  const redo = group.drawnAt !== null;
-  after(() => notifyDrawDone(groupId, { redo }));
+  // Aviso a todos los participantes (sin decir a quién le toca a nadie), solo
+  // si el organizador lo pidió.
+  if (notify) {
+    const redo = group.drawnAt !== null;
+    after(() => notifyDrawDone(groupId, { redo }));
+  }
   return undefined;
 }

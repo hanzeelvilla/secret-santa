@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Controller, type Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createGroup, updateGroup } from "@/actions/groups";
 import { CURRENCIES, groupSchema } from "@/lib/validation";
 import { Spinner } from "./buttons";
 import { DatePicker } from "./DatePicker";
+import { NotifyCheckbox } from "./NotifyCheckbox";
 
 type GroupValues = {
   name: string;
@@ -39,6 +40,8 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
     exchangeDate: group?.exchangeDate ?? "",
   };
   const [isPending, startTransition] = useTransition();
+  // Siempre empieza marcada; solo aplica al editar.
+  const [notify, setNotify] = useState(true);
   const {
     register,
     control,
@@ -66,6 +69,8 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
       }
 
       // Si todo sale bien, la acción redirige y esta línea no devuelve nada.
+      if (notify) formData.set("notify", "on");
+
       const result = group
         ? await updateGroup(group.id, undefined, formData)
         : await createGroup(undefined, formData);
@@ -198,6 +203,15 @@ export function GroupForm({ group }: { group?: EditableGroup }) {
           )}
         </div>
       </div>
+
+      {isEdit && (
+        <NotifyCheckbox
+          label="Avisar a los participantes por correo si hay cambios"
+          checked={notify}
+          onChange={setNotify}
+          disabled={isPending}
+        />
+      )}
 
       {errors.root && (
         <p className="field-error" role="alert">

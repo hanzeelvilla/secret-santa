@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { runDraw } from "@/actions/groups";
 import { SubmitButton } from "./buttons";
+import { NotifyCheckbox } from "./NotifyCheckbox";
 
 export function DrawButton({
   groupId,
@@ -17,7 +18,8 @@ export function DrawButton({
   );
 
   return (
-    <form action={action}>
+    <form action={action} className="flex flex-col items-end gap-2">
+      <NotifyCheckbox label="Avisar a todos por correo" />
       {redo ? (
         <SubmitButton
           className="btn btn-danger"
