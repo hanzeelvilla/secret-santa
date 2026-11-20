@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <Snowfall />
         <Header />
-        <main className="relative z-10 mx-auto w-full max-w-4xl flex-1 px-4 pt-4 pb-16">
+        <main className="relative z-20 mx-auto w-full max-w-4xl flex-1 px-4 pt-4 pb-16">
           {children}
         </main>
         <footer className="relative z-10 pb-6 text-center text-sm text-snow/50">
